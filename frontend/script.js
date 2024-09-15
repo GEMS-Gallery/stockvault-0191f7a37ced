@@ -1,4 +1,4 @@
-// Initialize Chart.js configurations and data
+import { backend } from 'declarations/backend';
 
 // Chart.js configurations for the doughnut charts
 const allocationData = {
@@ -19,7 +19,7 @@ const classesData = {
 
 const doughnutOptions = {
     responsive: true,
-    maintainAspectRatio: true, // Set to true to maintain aspect ratio
+    maintainAspectRatio: true,
     cutout: '70%',
     plugins: {
         legend: {
@@ -59,7 +59,7 @@ function createBarChart() {
     ];
 
     const barChart = document.getElementById('sectorsChart');
-    barChart.innerHTML = ''; // Clear existing content
+    barChart.innerHTML = '';
     sectorsData.forEach(item => {
         const bar = document.createElement('div');
         bar.className = 'bar';
@@ -74,7 +74,7 @@ function createBarChart() {
     });
 }
 
-// Function to initialize charts when they come into view
+// Function to initialize charts
 function initializeCharts() {
     createChart('allocationChart', allocationData, doughnutOptions);
     createChart('classesChart', classesData, doughnutOptions);
@@ -105,9 +105,70 @@ function showPage(pageName) {
     }
 }
 
-// Initialize the page with the Holdings tab active and set up event listeners
+// Function to render holdings table
+async function renderHoldingsTable() {
+    try {
+        const portfolio = await backend.getPortfolio();
+        const tableBody = document.getElementById('holdings-table-body');
+        tableBody.innerHTML = '';
+        
+        portfolio.holdings.forEach(holding => {
+            const row = tableBody.insertRow();
+            const marketValue = holding.quantity * holding.currentPrice;
+            const performance = ((holding.currentPrice - holding.purchasePrice) / holding.purchasePrice) * 100;
+            const performanceValue = marketValue - (holding.quantity * holding.purchasePrice);
+            
+            row.innerHTML = `
+                <td><span class="stock-symbol">${holding.symbol}</span> ${holding.name}</td>
+                <td>${holding.quantity.toFixed(4)}</td>
+                <td>$${marketValue.toFixed(2)}</td>
+                <td>$${holding.currentPrice.toFixed(2)}</td>
+                <td class="${performance >= 0 ? 'positive' : 'negative'}">
+                    ${performance >= 0 ? '+' : ''}${performance.toFixed(2)}%<br>
+                    ${performanceValue >= 0 ? '+' : ''}$${Math.abs(performanceValue).toFixed(2)}
+                </td>
+                <td>${holding.assetType}</td>
+            `;
+        });
+    } catch (error) {
+        console.error("Error fetching portfolio:", error);
+    }
+}
+
+// Function to handle adding a new asset
+async function handleAddAsset(event) {
+    event.preventDefault();
+    const form = event.target;
+    const symbol = form.symbol.value;
+    const name = form.name.value;
+    const quantity = parseFloat(form.quantity.value);
+    const purchasePrice = parseFloat(form.purchasePrice.value);
+    const assetType = form.assetType.value;
+
+    try {
+        await backend.addOrUpdateHolding(symbol, name, quantity, purchasePrice, purchasePrice, assetType);
+        await renderHoldingsTable();
+        closeModal();
+        form.reset();
+    } catch (error) {
+        console.error("Error adding asset:", error);
+    }
+}
+
+// Function to open the modal
+function openModal() {
+    document.getElementById('add-asset-modal').style.display = 'block';
+}
+
+// Function to close the modal
+function closeModal() {
+    document.getElementById('add-asset-modal').style.display = 'none';
+}
+
+// Initialize the page and set up event listeners
 document.addEventListener('DOMContentLoaded', () => {
     showPage('holdings');
+    renderHoldingsTable();
     
     const tabs = document.querySelectorAll('.tab');
     tabs.forEach(tab => {
@@ -115,4 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             showPage(tab.dataset.page);
         });
     });
+
+    document.getElementById('add-asset-btn').addEventListener('click', openModal);
+    document.getElementById('add-asset-form').addEventListener('submit', handleAddAsset);
+
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('add-asset-modal')) {
+            closeModal();
+        }
+    }
 });

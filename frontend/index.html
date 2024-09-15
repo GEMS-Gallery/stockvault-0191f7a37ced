@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <title>Portfolio Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Link to external CSS file -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- Feather Icons -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 </head>
 <body>
@@ -23,7 +20,7 @@
         <main class="main-content">
             <header>
                 <h1>Holdings</h1>
-                <button class="add-asset-btn">
+                <button id="add-asset-btn" class="add-asset-btn">
                     <i data-feather="plus"></i>
                     Add Asset
                 </button>
@@ -44,47 +41,8 @@
                             <th>Type</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><span class="stock-symbol">AAPL</span> Apple Inc.</td>
-                            <td>19.0235</td>
-                            <td>$3,613.51</td>
-                            <td>$189.95</td>
-                            <td class="positive">+85.83%<br>$1,669.62</td>
-                            <td>Equity</td>
-                        </tr>
-                        <tr>
-                            <td><span class="stock-symbol">MSFT</span> Microsoft Corporation</td>
-                            <td>15.5</td>
-                            <td>$5,208.45</td>
-                            <td>$336.03</td>
-                            <td class="positive">+42.17%<br>$1,545.23</td>
-                            <td>Equity</td>
-                        </tr>
-                        <tr>
-                            <td><span class="stock-symbol">AMZN</span> Amazon.com Inc.</td>
-                            <td>8.75</td>
-                            <td>$1,189.38</td>
-                            <td>$135.93</td>
-                            <td class="negative">-12.54%<br>-$170.62</td>
-                            <td>Equity</td>
-                        </tr>
-                        <tr>
-                            <td><span class="stock-symbol">GOOGL</span> Alphabet Inc.</td>
-                            <td>12.25</td>
-                            <td>$1,630.88</td>
-                            <td>$133.13</td>
-                            <td class="positive">+23.76%<br>$312.88</td>
-                            <td>Equity</td>
-                        </tr>
-                        <tr>
-                            <td><span class="stock-symbol">BRK.B</span> Berkshire Hathaway Inc.</td>
-                            <td>6.5</td>
-                            <td>$2,080.45</td>
-                            <td>$320.07</td>
-                            <td class="positive">+15.32%<br>$276.45</td>
-                            <td>Equity</td>
-                        </tr>
+                    <tbody id="holdings-table-body">
+                        <!-- Holdings will be dynamically inserted here -->
                     </tbody>
                 </table>
             </div>
@@ -104,47 +62,27 @@
                     </div>
                 </div>
                 <h3>Holdings</h3>
-                <div class="holdings-grid">
-                    <div class="holding-item">
-                        <div>VTI</div>
-                        <div class="performance positive">+6.55%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>VT</div>
-                        <div class="performance positive">+0.01%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>MSFT</div>
-                        <div class="performance positive">+0.48%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>QQQ</div>
-                        <div class="performance positive">+0.34%</div>
-                    </div>
-                    <div class="holding-item negative">
-                        <div>BTC</div>
-                        <div class="performance negative">-0.66%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>TSLA</div>
-                        <div class="performance positive">+0.02%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>NVDA</div>
-                        <div class="performance positive">+0.05%</div>
-                    </div>
-                    <div class="holding-item">
-                        <div>AAPL</div>
-                        <div class="performance positive">+0.16%</div>
-                    </div>
+                <div class="holdings-grid" id="holdings-grid">
+                    <!-- Holdings will be dynamically inserted here -->
                 </div>
             </div>
         </main>
     </div>
-    <!-- Include external JavaScript file -->
+    <div id="add-asset-modal" class="modal">
+        <div class="modal-content">
+            <h2>Add Asset</h2>
+            <form id="add-asset-form">
+                <input type="text" id="symbol" placeholder="Symbol" required>
+                <input type="text" id="name" placeholder="Name" required>
+                <input type="number" id="quantity" placeholder="Quantity" step="0.0001" required>
+                <input type="number" id="purchasePrice" placeholder="Purchase Price" step="0.01" required>
+                <input type="text" id="assetType" placeholder="Asset Type" required>
+                <button type="submit">Add Asset</button>
+            </form>
+        </div>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js"></script>
-    <!-- Initialize Feather Icons -->
+    <script type="module" src="script.js"></script>
     <script>
         feather.replace();
     </script>
