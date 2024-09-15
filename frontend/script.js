@@ -1,5 +1,6 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
 import { Principal } from "@dfinity/principal";
+import { IDL } from "@dfinity/candid";
 
 // Mock IDL factory for development
 const mockIdlFactory = ({ IDL }) => {
@@ -20,7 +21,7 @@ let portfolioTrackerActor;
 // Initialize the Internet Computer agent and actor
 const initActor = async () => {
     const agent = new HttpAgent();
-    const canisterIdRaw = import.meta.env.VITE_PORTFOLIO_TRACKER_CANISTER_ID || 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Use a valid local canister ID format
+    const canisterIdRaw = import.meta.env.VITE_PORTFOLIO_TRACKER_CANISTER_ID || 'rrkah-fqaaa-aaaaa-aaaaq-cai';
 
     try {
         const canisterId = Principal.fromText(canisterIdRaw);
@@ -84,7 +85,6 @@ async function displayHoldings() {
 // Fetch market data from a public API
 async function fetchMarketData(symbol) {
     try {
-        // Use a public API like Alpha Vantage
         const apiKey = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY || 'demo';
         const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
         const response = await fetch(url);

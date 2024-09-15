@@ -9,7 +9,7 @@ import Nat "mo:base/Nat";
 import Text "mo:base/Text";
 import TrieMap "mo:base/TrieMap";
 
-actor {
+actor PortfolioTracker {
   public type Asset = {
     id: Nat;
     symbol: Text;
