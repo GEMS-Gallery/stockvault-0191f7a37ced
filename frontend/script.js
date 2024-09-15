@@ -19,12 +19,23 @@ let portfolioTrackerActor;
 // Initialize the Internet Computer agent and actor
 const initActor = async () => {
     const agent = new HttpAgent();
-    // For local development, use the mock IDL factory
-    // In production, this should be replaced with the actual generated IDL
-    portfolioTrackerActor = Actor.createActor(mockIdlFactory, {
-        agent,
-        canisterId: process.env.PORTFOLIO_TRACKER_CANISTER_ID,
-    });
+    const canisterId = import.meta.env.VITE_PORTFOLIO_TRACKER_CANISTER_ID || 'local-development-canister-id';
+    
+    if (!canisterId) {
+        console.error('Canister ID is not set. Please check your environment variables.');
+        document.body.innerHTML = '<h1>Error: Canister ID not found. Please check your configuration.</h1>';
+        return;
+    }
+
+    try {
+        portfolioTrackerActor = Actor.createActor(mockIdlFactory, {
+            agent,
+            canisterId: canisterId,
+        });
+    } catch (error) {
+        console.error('Error creating actor:', error);
+        document.body.innerHTML = '<h1>Error: Unable to initialize the application. Please try again later.</h1>';
+    }
 };
 
 // Fetch assets from the canister
@@ -36,6 +47,7 @@ async function fetchAssets() {
         updateCharts();
     } catch (error) {
         console.error('Error fetching assets:', error);
+        document.getElementById('holdings-body').innerHTML = '<tr><td colspan="6">Error loading assets. Please try again later.</td></tr>';
     }
 }
 
@@ -72,7 +84,7 @@ async function displayHoldings() {
 async function fetchMarketData(symbol) {
     try {
         // Use a public API like Alpha Vantage
-        const apiKey = 'YOUR_ALPHA_VANTAGE_API_KEY'; // Replace with your API key
+        const apiKey = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY || 'demo';
         const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
         const response = await fetch(url);
         const data = await response.json();
@@ -144,6 +156,7 @@ document.getElementById('add-asset-form').addEventListener('submit', async (e) =
         closeAddAssetModal();
     } catch (error) {
         console.error('Error adding asset:', error);
+        alert('Failed to add asset. Please try again.');
     }
 });
 
@@ -232,9 +245,11 @@ async function updateCharts() {
 // Initialize the application
 document.addEventListener('DOMContentLoaded', async () => {
     await initActor();
-    // Start with the Holdings page active
-    showPage('holdings');
-    await fetchAssets();
+    if (portfolioTrackerActor) {
+        // Start with the Holdings page active
+        showPage('holdings');
+        await fetchAssets();
+    }
 });
 
 // Close modal when clicking outside of it
