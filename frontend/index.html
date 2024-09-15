@@ -1,15 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta tags and page title -->
     <meta charset="UTF-8">
-    <title>Portfolio Tracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
+    <title>Portfolio Tracker</title>
+
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Feather Icons CDN -->
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Link to the CSS file -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
+        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-icon" data-feather="grid"></div>
             <div class="sidebar-icon" data-feather="bar-chart-2"></div>
@@ -17,19 +28,25 @@
             <div class="sidebar-icon" data-feather="folder"></div>
             <div class="sidebar-icon" data-feather="settings"></div>
         </div>
+
+        <!-- Main Content -->
         <main class="main-content">
             <header>
                 <h1>Holdings</h1>
-                <button id="add-asset-btn" class="add-asset-btn">
+                <button class="add-asset-btn">
                     <i data-feather="plus"></i>
                     Add Asset
                 </button>
             </header>
+
+            <!-- Tabs -->
             <div class="tabs">
-                <span class="tab active" data-page="holdings">Holdings</span>
-                <span class="tab" data-page="allocations">Allocations</span>
+                <span class="tab active" onclick="showPage('holdings')">Holdings</span>
+                <span class="tab" onclick="showPage('allocations')">Allocations</span>
             </div>
-            <div id="holdings-page" class="page active">
+
+            <!-- Holdings Page -->
+            <div id="holdings-page" class="active">
                 <table class="holdings-table">
                     <thead>
                         <tr>
@@ -41,12 +58,23 @@
                             <th>Type</th>
                         </tr>
                     </thead>
-                    <tbody id="holdings-table-body">
-                        <!-- Holdings will be dynamically inserted here -->
+                    <tbody>
+                        <!-- Apple Stock Row -->
+                        <tr id="apple-stock">
+                            <td><span class="stock-symbol">AAPL</span> Apple Inc.</td>
+                            <td id="apple-quantity">19.0235</td>
+                            <td id="apple-market-value">$0.00</td>
+                            <td id="apple-market-price">$0.00</td>
+                            <td id="apple-performance" class="positive">0.00%<br>$0.00</td>
+                            <td>Equity</td>
+                        </tr>
+                        <!-- Add more stock rows as needed -->
                     </tbody>
                 </table>
             </div>
-            <div id="allocations-page" class="page">
+
+            <!-- Allocations Page -->
+            <div id="allocations-page">
                 <div class="charts-container">
                     <div class="chart-card">
                         <h3>Allocation</h3>
@@ -62,29 +90,19 @@
                     </div>
                 </div>
                 <h3>Holdings</h3>
-                <div class="holdings-grid" id="holdings-grid">
-                    <!-- Holdings will be dynamically inserted here -->
+                <div class="holdings-grid">
+                    <!-- Sample Holdings -->
+                    <div class="holding-item">
+                        <div>VTI</div>
+                        <div class="performance positive">+6.55%</div>
+                    </div>
+                    <!-- Add more holdings as needed -->
                 </div>
             </div>
         </main>
     </div>
-    <div id="add-asset-modal" class="modal">
-        <div class="modal-content">
-            <h2>Add Asset</h2>
-            <form id="add-asset-form">
-                <input type="text" id="symbol" placeholder="Symbol" required>
-                <input type="text" id="name" placeholder="Name" required>
-                <input type="number" id="quantity" placeholder="Quantity" step="0.0001" required>
-                <input type="number" id="purchasePrice" placeholder="Purchase Price" step="0.01" required>
-                <input type="text" id="assetType" placeholder="Asset Type" required>
-                <button type="submit">Add Asset</button>
-            </form>
-        </div>
-    </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module" src="script.js"></script>
-    <script>
-        feather.replace();
-    </script>
+
+    <!-- Link to the JavaScript file -->
+    <script src="script.js"></script>
 </body>
 </html>
