@@ -43,7 +43,7 @@ async function fetchAssets() {
         updateCharts();
     } catch (error) {
         console.error('Error fetching assets:', error);
-        document.getElementById('holdings-body').innerHTML = '<tr><td colspan="6">Error loading assets. Please try again later.</td></tr>';
+        document.getElementById('holdings-body').innerHTML = '<tr><td colspan="6">Error loading assets. Please check the canister configuration and try again.</td></tr>';
     }
 }
 
@@ -51,6 +51,11 @@ async function fetchAssets() {
 async function displayHoldings() {
     const holdingsBody = document.getElementById('holdings-body');
     holdingsBody.innerHTML = '';
+
+    if (assets.length === 0) {
+        holdingsBody.innerHTML = '<tr><td colspan="6">No assets found. Add some assets to get started.</td></tr>';
+        return;
+    }
 
     for (const asset of assets) {
         const marketData = await fetchMarketData(asset.symbol);
@@ -152,7 +157,7 @@ document.getElementById('add-asset-form').addEventListener('submit', async (e) =
         closeAddAssetModal();
     } catch (error) {
         console.error('Error adding asset:', error);
-        alert('Failed to add asset. Please try again.');
+        alert('Failed to add asset. Please check the canister configuration and try again.');
     }
 });
 
