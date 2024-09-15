@@ -76,30 +76,14 @@ function createBarChart() {
 
 // Function to initialize charts when they come into view
 function initializeCharts() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                if (entry.target.id === 'allocationChart') {
-                    createChart('allocationChart', allocationData, doughnutOptions);
-                } else if (entry.target.id === 'classesChart') {
-                    createChart('classesChart', classesData, doughnutOptions);
-                } else if (entry.target.id === 'sectorsChart') {
-                    createBarChart();
-                }
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    ['allocationChart', 'classesChart', 'sectorsChart'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) observer.observe(element);
-    });
+    createChart('allocationChart', allocationData, doughnutOptions);
+    createChart('classesChart', classesData, doughnutOptions);
+    createBarChart();
 }
 
 // Function to switch between Holdings and Allocations pages
 function showPage(pageName) {
-    const pages = document.querySelectorAll('#holdings-page, #allocations-page');
+    const pages = document.querySelectorAll('.page');
     const tabs = document.querySelectorAll('.tab');
     
     pages.forEach(page => {
@@ -111,7 +95,7 @@ function showPage(pageName) {
 
     tabs.forEach(tab => {
         tab.classList.remove('active');
-        if (tab.textContent.toLowerCase() === pageName) {
+        if (tab.dataset.page === pageName) {
             tab.classList.add('active');
         }
     });
@@ -121,7 +105,14 @@ function showPage(pageName) {
     }
 }
 
-// Initialize the page with the Holdings tab active
+// Initialize the page with the Holdings tab active and set up event listeners
 document.addEventListener('DOMContentLoaded', () => {
     showPage('holdings');
+    
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            showPage(tab.dataset.page);
+        });
+    });
 });

@@ -131,10 +131,10 @@ header {
 .negative {
     color: var(--negative-color);
 }
-#allocations-page, #holdings-page {
+.page {
     display: none;
 }
-#allocations-page.active, #holdings-page.active {
+.page.active {
     display: block;
 }
 .bar-chart {
