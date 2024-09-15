@@ -6,58 +6,81 @@ import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
 import Text "mo:base/Text";
 
-actor StockHolding {
-  // Define the structure for a stock holding
+actor PortfolioTracker {
   type Holding = {
     symbol: Text;
+    name: Text;
     quantity: Float;
     purchasePrice: Float;
+    currentPrice: Float;
+    assetType: Text;
+    sector: Text;
   };
 
-  // Use a stable variable to store holdings
+  type Portfolio = {
+    holdings: [Holding];
+    allocation: [(Text, Float)];
+    assetClasses: [(Text, Float)];
+    sectors: [(Text, Float)];
+  };
+
   stable var holdingsEntries : [(Text, Holding)] = [];
   var holdings = HashMap.HashMap<Text, Holding>(10, Text.equal, Text.hash);
 
-  // Initialize holdings from stable storage
   public func init() : async () {
     holdings := HashMap.fromIter<Text, Holding>(holdingsEntries.vals(), 10, Text.equal, Text.hash);
   };
 
-  // Add or update a stock holding
-  public func addOrUpdateHolding(symbol: Text, quantity: Float, purchasePrice: Float) : async () {
+  public func addOrUpdateHolding(symbol: Text, name: Text, quantity: Float, purchasePrice: Float, currentPrice: Float, assetType: Text, sector: Text) : async () {
     let holding : Holding = {
       symbol = symbol;
+      name = name;
       quantity = quantity;
       purchasePrice = purchasePrice;
+      currentPrice = currentPrice;
+      assetType = assetType;
+      sector = sector;
     };
     holdings.put(symbol, holding);
   };
 
-  // Remove a stock holding
   public func removeHolding(symbol: Text) : async () {
     holdings.delete(symbol);
   };
 
-  // Get all stock holdings
-  public query func getAllHoldings() : async [Holding] {
-    return Iter.toArray(holdings.vals());
+  public query func getPortfolio() : async Portfolio {
+    let holdingsArray = Iter.toArray(holdings.vals());
+    let allocation = calculateAllocation(holdingsArray);
+    let assetClasses = calculateAssetClasses(holdingsArray);
+    let sectors = calculateSectors(holdingsArray);
+
+    {
+      holdings = holdingsArray;
+      allocation = allocation;
+      assetClasses = assetClasses;
+      sectors = sectors;
+    }
   };
 
-  // Calculate total portfolio value (assuming current price is purchase price)
-  public query func getTotalPortfolioValue() : async Float {
-    var total : Float = 0;
-    for (holding in holdings.vals()) {
-      total += holding.quantity * holding.purchasePrice;
-    };
-    return total;
+  private func calculateAllocation(holdings: [Holding]) : [(Text, Float)] {
+    // Implement allocation calculation logic
+    []
   };
 
-  // For upgrades: store holdings in stable variable
+  private func calculateAssetClasses(holdings: [Holding]) : [(Text, Float)] {
+    // Implement asset classes calculation logic
+    []
+  };
+
+  private func calculateSectors(holdings: [Holding]) : [(Text, Float)] {
+    // Implement sectors calculation logic
+    []
+  };
+
   system func preupgrade() {
     holdingsEntries := Iter.toArray(holdings.entries());
   };
 
-  // For upgrades: reinitialize holdings from stable variable
   system func postupgrade() {
     holdings := HashMap.fromIter<Text, Holding>(holdingsEntries.vals(), 10, Text.equal, Text.hash);
   };
