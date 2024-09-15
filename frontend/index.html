@@ -33,7 +33,7 @@
         <main class="main-content">
             <header>
                 <h1>Holdings</h1>
-                <button class="add-asset-btn">
+                <button class="add-asset-btn" onclick="showAddAssetModal()">
                     <i data-feather="plus"></i>
                     Add Asset
                 </button>
@@ -47,7 +47,7 @@
 
             <!-- Holdings Page -->
             <div id="holdings-page" class="active">
-                <table class="holdings-table">
+                <table class="holdings-table" id="holdings-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -58,17 +58,8 @@
                             <th>Type</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <!-- Apple Stock Row -->
-                        <tr id="apple-stock">
-                            <td><span class="stock-symbol">AAPL</span> Apple Inc.</td>
-                            <td id="apple-quantity">19.0235</td>
-                            <td id="apple-market-value">$0.00</td>
-                            <td id="apple-market-price">$0.00</td>
-                            <td id="apple-performance" class="positive">0.00%<br>$0.00</td>
-                            <td>Equity</td>
-                        </tr>
-                        <!-- Add more stock rows as needed -->
+                    <tbody id="holdings-body">
+                        <!-- Holdings will be dynamically inserted here -->
                     </tbody>
                 </table>
             </div>
@@ -81,25 +72,36 @@
                         <canvas id="allocationChart"></canvas>
                     </div>
                     <div class="chart-card">
-                        <h3>Classes</h3>
-                        <canvas id="classesChart"></canvas>
+                        <h3>Performance</h3>
+                        <canvas id="performanceChart"></canvas>
                     </div>
-                    <div class="chart-card">
-                        <h3>Sectors</h3>
-                        <div class="bar-chart" id="sectorsChart"></div>
-                    </div>
-                </div>
-                <h3>Holdings</h3>
-                <div class="holdings-grid">
-                    <!-- Sample Holdings -->
-                    <div class="holding-item">
-                        <div>VTI</div>
-                        <div class="performance positive">+6.55%</div>
-                    </div>
-                    <!-- Add more holdings as needed -->
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Add Asset Modal -->
+    <div id="add-asset-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeAddAssetModal()">&times;</span>
+            <h2>Add Asset</h2>
+            <form id="add-asset-form">
+                <label for="symbol">Symbol:</label>
+                <input type="text" id="symbol" name="symbol" required>
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+                <label for="quantity">Quantity:</label>
+                <input type="number" step="any" id="quantity" name="quantity" required>
+                <label for="type">Type:</label>
+                <select id="type" name="type" required>
+                    <option value="Equity">Equity</option>
+                    <option value="ETF">ETF</option>
+                    <option value="Bond">Bond</option>
+                    <option value="Crypto">Crypto</option>
+                </select>
+                <button type="submit">Add Asset</button>
+            </form>
+        </div>
     </div>
 
     <!-- Link to the JavaScript file -->

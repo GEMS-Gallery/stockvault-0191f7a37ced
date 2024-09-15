@@ -1,94 +1,95 @@
+import Bool "mo:base/Bool";
+import Trie "mo:base/Trie";
+
 import Array "mo:base/Array";
-import Hash "mo:base/Hash";
-
+import Debug "mo:base/Debug";
 import Float "mo:base/Float";
-import HashMap "mo:base/HashMap";
 import Iter "mo:base/Iter";
+import Nat "mo:base/Nat";
 import Text "mo:base/Text";
+import TrieMap "mo:base/TrieMap";
 
-actor PortfolioTracker {
-  type Holding = {
+actor {
+  public type Asset = {
+    id: Nat;
     symbol: Text;
     name: Text;
     quantity: Float;
-    purchasePrice: Float;
-    currentPrice: Float;
     assetType: Text;
   };
 
-  type Portfolio = {
-    holdings: [Holding];
-    allocation: [(Text, Float)];
-    assetClasses: [(Text, Float)];
-    sectors: [(Text, Float)];
+  stable var assetsEntries : [(Nat, Asset)] = [];
+  var assets = TrieMap.fromEntries<Nat, Asset>(assetsEntries.vals(), Nat.equal, Nat.hash);
+  stable var nextId: Nat = 1;
+
+  func escapeString(t : Text) : Text {
+    let r1 = Text.replace(t, #text("\\"), "\\\\");
+    Text.replace(r1, #text("\""), "\\\"")
   };
 
-  stable var holdingsEntries : [(Text, Holding)] = [];
-  var holdings = HashMap.HashMap<Text, Holding>(10, Text.equal, Text.hash);
-
-  public func init() : async () {
-    holdings := HashMap.fromIter<Text, Holding>(holdingsEntries.vals(), 10, Text.equal, Text.hash);
+  func assetToJSON(a: Asset): Text {
+    "{\"id\":" # Nat.toText(a.id) #
+    ",\"symbol\":\"" # escapeString(a.symbol) #
+    "\",\"name\":\"" # escapeString(a.name) #
+    "\",\"quantity\":" # Float.toText(a.quantity) #
+    ",\"assetType\":\"" # escapeString(a.assetType) # "\"}"
   };
 
-  public func addOrUpdateHolding(symbol: Text, name: Text, quantity: Float, purchasePrice: Float, currentPrice: Float, assetType: Text) : async () {
-    let holding : Holding = {
+  func assetsToJSON(): Text {
+    let jsonAssets = Array.map<Asset, Text>(
+      Iter.toArray(assets.vals()),
+      func (a: Asset): Text { assetToJSON(a) }
+    );
+    "[" # Text.join(",", jsonAssets.vals()) # "]"
+  };
+
+  public query func getAssets() : async Text {
+    assetsToJSON()
+  };
+
+  public func addAsset(symbol: Text, name: Text, quantity: Float, assetType: Text) : async Text {
+    let newAsset: Asset = {
+      id = nextId;
       symbol = symbol;
       name = name;
       quantity = quantity;
-      purchasePrice = purchasePrice;
-      currentPrice = currentPrice;
       assetType = assetType;
     };
-    holdings.put(symbol, holding);
+    assets.put(nextId, newAsset);
+    nextId += 1;
+    assetToJSON(newAsset)
   };
 
-  public func removeHolding(symbol: Text) : async () {
-    holdings.delete(symbol);
-  };
-
-  public query func getPortfolio() : async Portfolio {
-    let holdingsArray = Iter.toArray(holdings.vals());
-    let allocation = calculateAllocation(holdingsArray);
-    let assetClasses = calculateAssetClasses(holdingsArray);
-    let sectors = calculateSectors();
-
-    {
-      holdings = holdingsArray;
-      allocation = allocation;
-      assetClasses = assetClasses;
-      sectors = sectors;
+  public func updateAsset(id: Nat, symbol: Text, name: Text, quantity: Float, assetType: Text) : async ?Text {
+    switch (assets.get(id)) {
+      case (null) { null };
+      case (?existingAsset) {
+        let updatedAsset: Asset = {
+          id = id;
+          symbol = symbol;
+          name = name;
+          quantity = quantity;
+          assetType = assetType;
+        };
+        assets.put(id, updatedAsset);
+        ?assetToJSON(updatedAsset)
+      };
     }
   };
 
-  private func calculateAllocation(holdings: [Holding]) : [(Text, Float)] {
-    // Placeholder implementation
-    [("Equity", 64.0), ("Fixed Income", 17.0), ("Cash", 17.0), ("Crypto", 1.0)]
-  };
-
-  private func calculateAssetClasses(holdings: [Holding]) : [(Text, Float)] {
-    // Placeholder implementation
-    [("ETF", 41.0), ("Stock", 17.0), ("Bonds", 23.0), ("Cash", 17.0), ("Crypto", 1.0)]
-  };
-
-  private func calculateSectors() : [(Text, Float)] {
-    // Placeholder implementation
-    [
-      ("Others", 50.0),
-      ("Technology", 15.0),
-      ("Financial Services", 10.0),
-      ("Consumer Cyclical", 8.0),
-      ("Communication Services", 7.0),
-      ("Consumer Staples", 5.0),
-      ("Basic Materials", 3.0),
-      ("Healthcare", 2.0)
-    ]
+  public func deleteAsset(id: Nat) : async Bool {
+    switch (assets.remove(id)) {
+      case (null) { false };
+      case (?_) { true };
+    }
   };
 
   system func preupgrade() {
-    holdingsEntries := Iter.toArray(holdings.entries());
+    assetsEntries := Iter.toArray(assets.entries());
   };
 
   system func postupgrade() {
-    holdings := HashMap.fromIter<Text, Holding>(holdingsEntries.vals(), 10, Text.equal, Text.hash);
+    assets := TrieMap.fromEntries(assetsEntries.vals(), Nat.equal, Nat.hash);
+    assetsEntries := [];
   };
 }

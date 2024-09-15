@@ -4,115 +4,86 @@ import { idlFactory as portfolioTrackerIDL } from "./declarations/portfolio_trac
 // Initialize Feather Icons
 feather.replace();
 
+let assets = [];
+let portfolioTrackerActor;
+
 // Initialize the Internet Computer agent and actor
-const agent = new HttpAgent();
-const portfolioTrackerActor = Actor.createActor(portfolioTrackerIDL, {
-  agent,
-  canisterId: process.env.PORTFOLIO_TRACKER_CANISTER_ID,
-});
-
-// Chart.js configurations for the doughnut charts
-const allocationData = {
-    labels: ['Equity (64%)', 'Fixed Income (17%)', 'Cash (17%)', 'Crypto (1%)'],
-    datasets: [{
-        data: [64, 17, 17, 1],
-        backgroundColor: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6']
-    }]
+const initActor = async () => {
+    const agent = new HttpAgent();
+    portfolioTrackerActor = Actor.createActor(portfolioTrackerIDL, {
+        agent,
+        canisterId: process.env.PORTFOLIO_TRACKER_CANISTER_ID,
+    });
 };
 
-const classesData = {
-    labels: ['ETF (41%)', 'Stock (17%)', 'Bonds (23%)', 'Cash (17%)', 'Crypto (1%)'],
-    datasets: [{
-        data: [41, 17, 23, 17, 1],
-        backgroundColor: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6', '#bdc3c7']
-    }]
-};
-
-const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '70%',
-    plugins: {
-        legend: {
-            position: 'right',
-            labels: {
-                font: {
-                    family: 'Inter',
-                    size: 12
-                },
-                boxWidth: 15
-            }
-        }
+// Fetch assets from the canister
+async function fetchAssets() {
+    try {
+        const assetsJson = await portfolioTrackerActor.getAssets();
+        assets = JSON.parse(assetsJson);
+        displayHoldings();
+        updateCharts();
+    } catch (error) {
+        console.error('Error fetching assets:', error);
     }
-};
-
-// Function to create charts
-function createChart(elementId, chartData, chartOptions) {
-    const ctx = document.getElementById(elementId).getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: chartData,
-        options: chartOptions
-    });
 }
 
-// Create the bar chart
-function createBarChart() {
-    const sectorsData = [
-        { label: 'Others', value: 50 },
-        { label: 'Technology', value: 15 },
-        { label: 'Financial Services', value: 10 },
-        { label: 'Consumer Cyclical', value: 8 },
-        { label: 'Communication Services', value: 7 },
-        { label: 'Consumer Staples', value: 5 },
-        { label: 'Basic Materials', value: 3 },
-        { label: 'Healthcare', value: 2 }
-    ];
+// Display holdings in the table
+async function displayHoldings() {
+    const holdingsBody = document.getElementById('holdings-body');
+    holdingsBody.innerHTML = '';
 
-    const barChart = document.getElementById('sectorsChart');
-    barChart.innerHTML = ''; // Clear existing content
-    sectorsData.forEach(item => {
-        const bar = document.createElement('div');
-        bar.className = 'bar';
-        bar.style.height = `${item.value}%`;
-        
-        const label = document.createElement('div');
-        label.className = 'bar-label';
-        label.textContent = item.label;
-        
-        bar.appendChild(label);
-        barChart.appendChild(bar);
-    });
+    for (const asset of assets) {
+        const marketData = await fetchMarketData(asset.symbol);
+        const marketPrice = marketData.currentPrice;
+        const previousClose = marketData.previousClose;
+        const marketValue = marketPrice * asset.quantity;
+        const totalGainValue = marketValue - (previousClose * asset.quantity);
+        const totalGainPercent = (totalGainValue / (previousClose * asset.quantity)) * 100;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><span class="stock-symbol">${asset.symbol}</span> ${asset.name}</td>
+            <td>${asset.quantity}</td>
+            <td>$${marketValue.toFixed(2)}</td>
+            <td>$${marketPrice.toFixed(2)}</td>
+            <td class="${totalGainValue >= 0 ? 'positive' : 'negative'}">
+                ${totalGainPercent >= 0 ? '+' : ''}${totalGainPercent.toFixed(2)}%<br>
+                $${totalGainValue.toFixed(2)}
+            </td>
+            <td>${asset.assetType}</td>
+        `;
+        holdingsBody.appendChild(row);
+    }
 }
 
-// Function to initialize charts when they come into view
-function initializeCharts() {
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                if (entry.target.id === 'allocationChart') {
-                    createChart('allocationChart', allocationData, doughnutOptions);
-                } else if (entry.target.id === 'classesChart') {
-                    createChart('classesChart', classesData, doughnutOptions);
-                } else if (entry.target.id === 'sectorsChart') {
-                    createBarChart();
-                }
-                observer.unobserve(entry.target);
-            }
-        });
-    }, { threshold: 0.1 });
-
-    ['allocationChart', 'classesChart', 'sectorsChart'].forEach(id => {
-        const element = document.getElementById(id);
-        if (element) observer.observe(element);
-    });
+// Fetch market data from a public API
+async function fetchMarketData(symbol) {
+    try {
+        // Use a public API like Alpha Vantage
+        const apiKey = 'YOUR_ALPHA_VANTAGE_API_KEY'; // Replace with your API key
+        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const quote = data['Global Quote'];
+        return {
+            currentPrice: parseFloat(quote['05. price']),
+            previousClose: parseFloat(quote['08. previous close']),
+        };
+    } catch (error) {
+        console.error('Error fetching market data:', error);
+        return {
+            currentPrice: 0,
+            previousClose: 0,
+        };
+    }
 }
 
 // Function to switch between Holdings and Allocations pages
 function showPage(pageName) {
     const pages = document.querySelectorAll('#holdings-page, #allocations-page');
     const tabs = document.querySelectorAll('.tab');
-    
+
     pages.forEach(page => {
         page.classList.remove('active');
         if (page.id === `${pageName}-page`) {
@@ -128,50 +99,137 @@ function showPage(pageName) {
     });
 
     if (pageName === 'allocations') {
-        initializeCharts();
+        updateCharts();
     }
 }
 
-// Function to update the holdings table
-async function updateHoldingsTable() {
+// Show Add Asset Modal
+function showAddAssetModal() {
+    const modal = document.getElementById('add-asset-modal');
+    modal.style.display = 'block';
+}
+
+// Close Add Asset Modal
+function closeAddAssetModal() {
+    const modal = document.getElementById('add-asset-modal');
+    modal.style.display = 'none';
+    document.getElementById('add-asset-form').reset();
+}
+
+// Handle Add Asset Form Submission
+document.getElementById('add-asset-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const symbol = document.getElementById('symbol').value.toUpperCase();
+    const name = document.getElementById('name').value;
+    const quantity = parseFloat(document.getElementById('quantity').value);
+    const type = document.getElementById('type').value;
+
     try {
-        const portfolio = await portfolioTrackerActor.getPortfolio();
-        const tableBody = document.querySelector('.holdings-table tbody');
-        tableBody.innerHTML = ''; // Clear existing content
-
-        portfolio.holdings.forEach(holding => {
-            const row = tableBody.insertRow();
-            const marketValue = holding.quantity * holding.currentPrice;
-            const performance = ((holding.currentPrice - holding.purchasePrice) / holding.purchasePrice) * 100;
-            const performanceValue = marketValue - (holding.quantity * holding.purchasePrice);
-
-            row.innerHTML = `
-                <td><span class="stock-symbol">${holding.symbol}</span> ${holding.name}</td>
-                <td>${holding.quantity.toFixed(4)}</td>
-                <td>$${marketValue.toFixed(2)}</td>
-                <td>$${holding.currentPrice.toFixed(2)}</td>
-                <td class="${performance >= 0 ? 'positive' : 'negative'}">
-                    ${performance >= 0 ? '+' : ''}${performance.toFixed(2)}%<br>
-                    ${performanceValue >= 0 ? '+' : ''}$${Math.abs(performanceValue).toFixed(2)}
-                </td>
-                <td>${holding.assetType}</td>
-            `;
-        });
+        const addedAssetJson = await portfolioTrackerActor.addAsset(symbol, name, quantity, type);
+        const addedAsset = JSON.parse(addedAssetJson);
+        assets.push(addedAsset);
+        displayHoldings();
+        updateCharts();
+        closeAddAssetModal();
     } catch (error) {
-        console.error('Error fetching portfolio:', error);
+        console.error('Error adding asset:', error);
     }
+});
+
+// Update Charts
+async function updateCharts() {
+    // Allocation Chart
+    const assetTypes = {};
+    for (const asset of assets) {
+        if (!assetTypes[asset.assetType]) {
+            assetTypes[asset.assetType] = 0;
+        }
+        const marketData = await fetchMarketData(asset.symbol);
+        const marketValue = marketData.currentPrice * asset.quantity;
+        assetTypes[asset.assetType] += marketValue;
+    }
+
+    const allocationLabels = Object.keys(assetTypes);
+    const allocationData = Object.values(assetTypes);
+
+    const allocationChartCtx = document.getElementById('allocationChart').getContext('2d');
+    new Chart(allocationChartCtx, {
+        type: 'doughnut',
+        data: {
+            labels: allocationLabels,
+            datasets: [{
+                data: allocationData,
+                backgroundColor: ['#2c3e50', '#34495e', '#7f8c8d', '#95a5a6', '#bdc3c7']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: {
+                            family: 'Inter',
+                            size: 12
+                        },
+                        boxWidth: 15
+                    }
+                }
+            }
+        }
+    });
+
+    // Performance Chart
+    const performanceLabels = assets.map(asset => asset.symbol);
+    const performanceData = [];
+    for (const asset of assets) {
+        const marketData = await fetchMarketData(asset.symbol);
+        const marketPrice = marketData.currentPrice;
+        const previousClose = marketData.previousClose;
+        const marketValue = marketPrice * asset.quantity;
+        const totalGainValue = marketValue - (previousClose * asset.quantity);
+        performanceData.push(totalGainValue);
+    }
+
+    const performanceChartCtx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(performanceChartCtx, {
+        type: 'bar',
+        data: {
+            labels: performanceLabels,
+            datasets: [{
+                label: 'Performance ($)',
+                data: performanceData,
+                backgroundColor: performanceData.map(value => value >= 0 ? 'rgba(76, 175, 80, 0.6)' : 'rgba(244, 67, 54, 0.6)'),
+                borderColor: performanceData.map(value => value >= 0 ? 'rgba(76, 175, 80, 1)' : 'rgba(244, 67, 54, 1)'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
 }
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await initActor();
     // Start with the Holdings page active
     showPage('holdings');
-
-    // Fetch and update holdings table
-    updateHoldingsTable();
-
-    // Set up event listeners for tabs
-    document.querySelectorAll('.tab').forEach(tab => {
-        tab.addEventListener('click', () => showPage(tab.textContent.toLowerCase()));
-    });
+    await fetchAssets();
 });
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('add-asset-modal');
+    if (event.target == modal) {
+        closeAddAssetModal();
+    }
+};

@@ -1,31 +1,6 @@
-type Portfolio = 
- record {
-   allocation: vec record {
-                     text;
-                     float64;
-                   };
-   assetClasses: vec record {
-                       text;
-                       float64;
-                     };
-   holdings: vec Holding;
-   sectors: vec record {
-                  text;
-                  float64;
-                };
- };
-type Holding = 
- record {
-   assetType: text;
-   currentPrice: float64;
-   name: text;
-   purchasePrice: float64;
-   quantity: float64;
-   symbol: text;
- };
 service : {
-  addOrUpdateHolding: (text, text, float64, float64, float64, text) -> ();
-  getPortfolio: () -> (Portfolio) query;
-  init: () -> ();
-  removeHolding: (text) -> ();
+  addAsset: (text, text, float64, text) -> (text);
+  deleteAsset: (nat) -> (bool);
+  getAssets: () -> (text) query;
+  updateAsset: (nat, text, text, float64, text) -> (opt text);
 }
