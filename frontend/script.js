@@ -1,4 +1,5 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
+import { Principal } from "@dfinity/principal";
 
 // Mock IDL factory for development
 const mockIdlFactory = ({ IDL }) => {
@@ -19,22 +20,17 @@ let portfolioTrackerActor;
 // Initialize the Internet Computer agent and actor
 const initActor = async () => {
     const agent = new HttpAgent();
-    const canisterId = import.meta.env.VITE_PORTFOLIO_TRACKER_CANISTER_ID || 'local-development-canister-id';
-    
-    if (!canisterId) {
-        console.error('Canister ID is not set. Please check your environment variables.');
-        document.body.innerHTML = '<h1>Error: Canister ID not found. Please check your configuration.</h1>';
-        return;
-    }
+    const canisterIdRaw = import.meta.env.VITE_PORTFOLIO_TRACKER_CANISTER_ID || 'rrkah-fqaaa-aaaaa-aaaaq-cai'; // Use a valid local canister ID format
 
     try {
+        const canisterId = Principal.fromText(canisterIdRaw);
         portfolioTrackerActor = Actor.createActor(mockIdlFactory, {
             agent,
-            canisterId: canisterId,
+            canisterId,
         });
     } catch (error) {
         console.error('Error creating actor:', error);
-        document.body.innerHTML = '<h1>Error: Unable to initialize the application. Please try again later.</h1>';
+        document.body.innerHTML = '<h1>Error: Unable to initialize the application. Please check your canister ID configuration.</h1>';
     }
 };
 
