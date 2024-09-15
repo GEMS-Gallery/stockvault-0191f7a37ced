@@ -21,12 +21,10 @@ type Holding =
    name: text;
    purchasePrice: float64;
    quantity: float64;
-   sector: text;
    symbol: text;
  };
 service : {
-  addOrUpdateHolding: (text, text, float64, float64, float64, text, text) ->
-   ();
+  addOrUpdateHolding: (text, text, float64, float64, float64, text) -> ();
   getPortfolio: () -> (Portfolio) query;
   init: () -> ();
   removeHolding: (text) -> ();

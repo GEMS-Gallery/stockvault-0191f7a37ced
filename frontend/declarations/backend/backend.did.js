@@ -3,7 +3,6 @@ export const idlFactory = ({ IDL }) => {
     'currentPrice' : IDL.Float64,
     'purchasePrice' : IDL.Float64,
     'name' : IDL.Text,
-    'sector' : IDL.Text,
     'quantity' : IDL.Float64,
     'assetType' : IDL.Text,
     'symbol' : IDL.Text,
@@ -16,15 +15,7 @@ export const idlFactory = ({ IDL }) => {
   });
   return IDL.Service({
     'addOrUpdateHolding' : IDL.Func(
-        [
-          IDL.Text,
-          IDL.Text,
-          IDL.Float64,
-          IDL.Float64,
-          IDL.Float64,
-          IDL.Text,
-          IDL.Text,
-        ],
+        [IDL.Text, IDL.Text, IDL.Float64, IDL.Float64, IDL.Float64, IDL.Text],
         [],
         [],
       ),

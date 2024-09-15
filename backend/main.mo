@@ -14,7 +14,6 @@ actor PortfolioTracker {
     purchasePrice: Float;
     currentPrice: Float;
     assetType: Text;
-    sector: Text;
   };
 
   type Portfolio = {
@@ -31,7 +30,7 @@ actor PortfolioTracker {
     holdings := HashMap.fromIter<Text, Holding>(holdingsEntries.vals(), 10, Text.equal, Text.hash);
   };
 
-  public func addOrUpdateHolding(symbol: Text, name: Text, quantity: Float, purchasePrice: Float, currentPrice: Float, assetType: Text, sector: Text) : async () {
+  public func addOrUpdateHolding(symbol: Text, name: Text, quantity: Float, purchasePrice: Float, currentPrice: Float, assetType: Text) : async () {
     let holding : Holding = {
       symbol = symbol;
       name = name;
@@ -39,7 +38,6 @@ actor PortfolioTracker {
       purchasePrice = purchasePrice;
       currentPrice = currentPrice;
       assetType = assetType;
-      sector = sector;
     };
     holdings.put(symbol, holding);
   };
@@ -52,7 +50,7 @@ actor PortfolioTracker {
     let holdingsArray = Iter.toArray(holdings.vals());
     let allocation = calculateAllocation(holdingsArray);
     let assetClasses = calculateAssetClasses(holdingsArray);
-    let sectors = calculateSectors(holdingsArray);
+    let sectors = calculateSectors();
 
     {
       holdings = holdingsArray;
@@ -63,18 +61,27 @@ actor PortfolioTracker {
   };
 
   private func calculateAllocation(holdings: [Holding]) : [(Text, Float)] {
-    // Implement allocation calculation logic
-    []
+    // Placeholder implementation
+    [("Equity", 64.0), ("Fixed Income", 17.0), ("Cash", 17.0), ("Crypto", 1.0)]
   };
 
   private func calculateAssetClasses(holdings: [Holding]) : [(Text, Float)] {
-    // Implement asset classes calculation logic
-    []
+    // Placeholder implementation
+    [("ETF", 41.0), ("Stock", 17.0), ("Bonds", 23.0), ("Cash", 17.0), ("Crypto", 1.0)]
   };
 
-  private func calculateSectors(holdings: [Holding]) : [(Text, Float)] {
-    // Implement sectors calculation logic
-    []
+  private func calculateSectors() : [(Text, Float)] {
+    // Placeholder implementation
+    [
+      ("Others", 50.0),
+      ("Technology", 15.0),
+      ("Financial Services", 10.0),
+      ("Consumer Cyclical", 8.0),
+      ("Communication Services", 7.0),
+      ("Consumer Staples", 5.0),
+      ("Basic Materials", 3.0),
+      ("Healthcare", 2.0)
+    ]
   };
 
   system func preupgrade() {

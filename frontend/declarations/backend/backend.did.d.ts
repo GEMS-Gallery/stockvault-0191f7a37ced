@@ -6,7 +6,6 @@ export interface Holding {
   'currentPrice' : number,
   'purchasePrice' : number,
   'name' : string,
-  'sector' : string,
   'quantity' : number,
   'assetType' : string,
   'symbol' : string,
@@ -19,7 +18,7 @@ export interface Portfolio {
 }
 export interface _SERVICE {
   'addOrUpdateHolding' : ActorMethod<
-    [string, string, number, number, number, string, string],
+    [string, string, number, number, number, string],
     undefined
   >,
   'getPortfolio' : ActorMethod<[], Portfolio>,
