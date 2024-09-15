@@ -1,5 +1,14 @@
 import { Actor, HttpAgent } from "@dfinity/agent";
-import { idlFactory as portfolioTrackerIDL } from "./declarations/portfolio_tracker/portfolio_tracker.did.js";
+
+// Mock IDL factory for development
+const mockIdlFactory = ({ IDL }) => {
+  return IDL.Service({
+    'getAssets': IDL.Func([], [IDL.Text], ['query']),
+    'addAsset': IDL.Func([IDL.Text, IDL.Text, IDL.Float64, IDL.Text], [IDL.Text], []),
+    'updateAsset': IDL.Func([IDL.Nat, IDL.Text, IDL.Text, IDL.Float64, IDL.Text], [IDL.Opt(IDL.Text)], []),
+    'deleteAsset': IDL.Func([IDL.Nat], [IDL.Bool], [])
+  });
+};
 
 // Initialize Feather Icons
 feather.replace();
@@ -10,7 +19,9 @@ let portfolioTrackerActor;
 // Initialize the Internet Computer agent and actor
 const initActor = async () => {
     const agent = new HttpAgent();
-    portfolioTrackerActor = Actor.createActor(portfolioTrackerIDL, {
+    // For local development, use the mock IDL factory
+    // In production, this should be replaced with the actual generated IDL
+    portfolioTrackerActor = Actor.createActor(mockIdlFactory, {
         agent,
         canisterId: process.env.PORTFOLIO_TRACKER_CANISTER_ID,
     });
@@ -233,3 +244,8 @@ window.onclick = function(event) {
         closeAddAssetModal();
     }
 };
+
+// Export functions that need to be accessible globally
+window.showAddAssetModal = showAddAssetModal;
+window.closeAddAssetModal = closeAddAssetModal;
+window.showPage = showPage;
